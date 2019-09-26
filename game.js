@@ -2,7 +2,7 @@
 
 // Frank Poth 08/13/2017
 
-var context, controller, player, loop;
+var context, controller, player, loop, dropRock, rock;
 var stageheight = 300;
 var stagewidth = 540;
 
@@ -16,7 +16,7 @@ player = {
   height:10,
   jumping:true,
   width:10,
-  x:144, // center of the canvas
+  x:stagewidth/2, // center of the canvas
   x_velocity:0,
   y:0,
   y_velocity:0
@@ -50,11 +50,20 @@ controller = {
 
 };
 
-loop = function() {
+rock = {
+  height:10,
+  falling:true,
+  width:10,
+  x: stagewidth, // right hand side of the canvas
+  x_velocity:0,
+  y:0,
+  y_velocity:0
+};
 
+function playerMove(){
   if (controller.up && player.jumping == false) {
 
-    player.y_velocity -= 20;
+    player.y_velocity -= 28; //max height of player jump
     player.jumping = true;
 
   }
@@ -75,7 +84,7 @@ loop = function() {
   player.x += player.x_velocity;
   player.y += player.y_velocity;
   player.x_velocity *= 0.9;// friction
-  player.y_velocity *= 0.9;// friction
+  player.y_velocity *= 0.8;// friction
 
   // if player is falling below floor line
   if (player.y > stageheight - 5 - 32) {
@@ -97,18 +106,61 @@ loop = function() {
 
   }
 
-  context.fillStyle = "#202020";
-  context.fillRect(0, 0, stagewidth, stageheight);// x, y, width, height
-  context.fillStyle = "#ffffff";// hex for red
+  //draw player
+  context.fillStyle = "#fff";// hex for white
   context.beginPath();
   context.arc(player.x, player.y, 15, player.width, player.height*Math.PI,false);
   context.fill();
+
+
+};
+
+function rockDrop(){
+  rock.x_velocity -= 0.5;
+  rock.y_velocity += 0.5;
+  rock.x += rock.x_velocity;
+
+  rock.y_velocity += 0.7;// gravity
+  rock.x += rock.x_velocity;
+  rock.y += rock.y_velocity;
+  rock.x_velocity *= 0.7;// friction
+  rock.y_velocity *= 0.8;// friction
+
+  if (rock.y > stageheight - 5 - 32){
+    rock.falling = false;
+    rock.y = stageheight - 5 - 32;
+    rock.y_velocity = 0;
+  }
+
+  if (rock.x < - 32){
+    rock.x = stagewidth + 5;
+    rock.y = 0;
+  }
+
+  console.log("dropping a rock");
+  context.fillStyle = '#f0f';
+  context.beginPath();
+  context.arc(rock.x, rock.y, 15, rock.width, rock.height*Math.PI,false);
+  context.fill();
+}
+
+if(controller.up || controller.right || controller.left){
+  rocks = true;
+}
+//function is reiterated for the duration of the script runtime
+loop = function() {
+  //draw stage
+  context.fillStyle = "#202020";
+  context.fillRect(0, 0, stagewidth, stageheight);// x, y, width, height
   context.strokeStyle = "#202830";
   context.lineWidth = 4;
   context.beginPath();
   context.moveTo(0, 284);
   context.lineTo(stagewidth, 284);
   context.stroke();
+
+  playerMove();
+  rockDrop();
 
   // call update when the browser is ready to draw again
   window.requestAnimationFrame(loop);
